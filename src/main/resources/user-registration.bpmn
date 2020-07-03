@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" id="Definitions_1t7ldid" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.0.0">
+  <bpmn:collaboration id="user-registration-collaboration">
+    <bpmn:participant id="user" name="User" processRef="user-registration" />
+    <bpmn:participant id="system" name="System" processRef="user-registration-system" />
+  </bpmn:collaboration>
+  <bpmn:process id="user-registration" isExecutable="true">
+    <bpmn:startEvent id="start" name="Start registration">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="phone" label="Phone" type="string">
+            <camunda:validation>
+              <camunda:constraint name="required" />
+              <camunda:constraint name="minlength" config="9" />
+              <camunda:constraint name="maxlength" config="12" />
+            </camunda:validation>
+          </camunda:formField>
+          <camunda:formField id="country" label="Country" type="enum">
+            <camunda:value id="PL" name="Poland" />
+            <camunda:value id="GB" name="United Kingdom" />
+          </camunda:formField>
+        </camunda:formData>
+      </bpmn:extensionElements>
+      <bpmn:outgoing>Flow_1nhw4jh</bpmn:outgoing>
+    </bpmn:startEvent>
+    <bpmn:endEvent id="Event_0ypixjy">
+      <bpmn:incoming>Flow_1nhw4jh</bpmn:incoming>
+    </bpmn:endEvent>
+    <bpmn:sequenceFlow id="Flow_1nhw4jh" sourceRef="start" targetRef="Event_0ypixjy" />
+  </bpmn:process>
+  <bpmn:process id="user-registration-system" isExecutable="false" />
+  <bpmndi:BPMNDiagram id="BPMNDiagram_1">
+    <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="user-registration-collaboration">
+      <bpmndi:BPMNShape id="Participant_0y77gc4_di" bpmnElement="user" isHorizontal="true">
+        <dc:Bounds x="190" y="110" width="600" height="250" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNEdge id="Flow_1nhw4jh_di" bpmnElement="Flow_1nhw4jh">
+        <di:waypoint x="318" y="230" />
+        <di:waypoint x="422" y="230" />
+      </bpmndi:BPMNEdge>
+      <bpmndi:BPMNShape id="Event_00achbe_di" bpmnElement="start">
+        <dc:Bounds x="282" y="212" width="36" height="36" />
+        <bpmndi:BPMNLabel>
+          <dc:Bounds x="260" y="255" width="81" height="14" />
+        </bpmndi:BPMNLabel>
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Event_0ypixjy_di" bpmnElement="Event_0ypixjy">
+        <dc:Bounds x="422" y="212" width="36" height="36" />
+      </bpmndi:BPMNShape>
+      <bpmndi:BPMNShape id="Participant_1181oh3_di" bpmnElement="system" isHorizontal="true">
+        <dc:Bounds x="190" y="360" width="600" height="250" />
+      </bpmndi:BPMNShape>
+    </bpmndi:BPMNPlane>
+  </bpmndi:BPMNDiagram>
+</bpmn:definitions>
