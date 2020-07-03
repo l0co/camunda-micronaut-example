@@ -77,8 +77,11 @@ public class UserRegistrationProcess {
 				"phone", phone,
 				"country", countryCode.toString()
 			));
+			runtimeService.setVariable(instance.getProcessInstanceId(), UserRegistration.NAME, new UserRegistration());
 
 		}
+
+		// TODOLF at this point we have following variables on this process instance: registration, phone and country
 
 		return instance.getBusinessKey();
 	}
