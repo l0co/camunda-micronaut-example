@@ -10,12 +10,14 @@ import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Singleton;
 import javax.validation.constraints.Email;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.util.Map;
 import java.util.UUID;
 
 /**
@@ -51,13 +53,32 @@ public class UserRegistrationProcess {
 	/**
 	 * @return A business key of running process.
 	 */
-	public String start() {
-		ProcessInstance instance = runtimeService.createProcessInstanceByKey(USER_REGISTRATION_PROCESS)
-			.setVariable(UserRegistration.NAME, new UserRegistration())
-			// this usage of business key is useless, however if we start process related to a given entity we can create meaningful
-			// business keys, like "MyEntity:ID:shipmentProcess"
-			.businessKey(UUID.randomUUID().toString())
-			.execute();
+	@SuppressWarnings("ConstantConditions")
+	public String start(@Nonnull String phone, @Nonnull CountryCode countryCode) {
+		ProcessInstance instance;
+
+		// this usage of business key is useless, however if we start process related to a given entity we can create meaningful
+		// business keys, like "MyEntity:ID:shipmentProcess"
+		String processBusinessKey = UUID.randomUUID().toString();
+
+		if (false) {
+
+			// this example shows how to start a process with custom business key, but without form data
+			// though we won't use this method, because we have some form data
+			instance = runtimeService.createProcessInstanceByKey(USER_REGISTRATION_PROCESS)
+				.setVariable(UserRegistration.NAME, new UserRegistration())
+				.businessKey(processBusinessKey)
+				.execute();
+
+		} else {
+
+			// this example shows how to start a process with custom business key with form data
+			instance = formService.submitStartForm(processDefinition(USER_REGISTRATION_PROCESS).getId(), processBusinessKey, Map.of(
+				"phone", phone,
+				"country", countryCode.toString()
+			));
+
+		}
 
 		return instance.getBusinessKey();
 	}

@@ -12,7 +12,7 @@
             <camunda:validation>
               <camunda:constraint name="required" />
               <camunda:constraint name="minlength" config="9" />
-              <camunda:constraint name="maxlength" config="12" />
+              <camunda:constraint name="maxlength" config="13" />
             </camunda:validation>
           </camunda:formField>
           <camunda:formField id="country" label="Country" type="enum">

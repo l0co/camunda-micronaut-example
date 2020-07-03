@@ -6,6 +6,7 @@ package camunda.example;
 public enum CountryCode {
 
 	PL,
-	GB
+	GB,
+	FR
 
 }
