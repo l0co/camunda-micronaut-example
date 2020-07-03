@@ -4,6 +4,8 @@ import org.camunda.bpm.engine.FormService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.form.FormData;
+import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
@@ -29,11 +31,28 @@ public class UserRegistrationProcess {
 	@Inject protected TaskService taskService;
 	@Inject protected RuntimeService runtimeService;
 
+	// note that each swimlane in bpmn collaboration is created as a separate process, here go names of all processes in our collaboration
+	public static final String USER_REGISTRATION_PROCESS = "user-registration";
+
+	/**
+	 * An example how to get the form data for the start task.
+	 */
+	public FormData getStartFormData() {
+		return formService.getStartFormData(processDefinition(USER_REGISTRATION_PROCESS).getId());
+	}
+
+	/**
+	 * An example how to get the form for the start task rendered in AngularJS.
+	 */
+	public String getStartFormHtml() {
+		return (String) formService.getRenderedStartForm(processDefinition(USER_REGISTRATION_PROCESS).getId());
+	}
+
 	/**
 	 * @return A business key of running process.
 	 */
 	public String start() {
-		ProcessInstance instance = runtimeService.createProcessInstanceByKey("user-registration")
+		ProcessInstance instance = runtimeService.createProcessInstanceByKey(USER_REGISTRATION_PROCESS)
 			.setVariable(UserRegistration.NAME, new UserRegistration())
 			// this usage of business key is useless, however if we start process related to a given entity we can create meaningful
 			// business keys, like "MyEntity:ID:shipmentProcess"
@@ -42,6 +61,22 @@ public class UserRegistrationProcess {
 
 		return instance.getBusinessKey();
 	}
+
+	/**********************************************************************************************************
+	 * Could go into the super class
+	 **********************************************************************************************************/
+
+	protected ProcessDefinition processDefinition(String processDefinitionKey) {
+		return repositoryService.createProcessDefinitionQuery().processDefinitionKey(processDefinitionKey).singleResult();
+	}
+
+	protected ProcessInstance processInstance(String businessKey) {
+		return runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(businessKey).singleResult();
+	}
+
+	/**********************************************************************************************************
+	 * Model to keep process variables in a standarized from
+	 **********************************************************************************************************/
 
 	public static class UserRegistration implements Serializable {
 
