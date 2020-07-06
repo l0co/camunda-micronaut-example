@@ -5,6 +5,7 @@ import org.camunda.bpm.engine.ProcessEngineException;
 import org.camunda.bpm.engine.form.TaskFormData;
 import org.camunda.bpm.engine.impl.form.validator.FormFieldValidatorException;
 import org.camunda.bpm.engine.task.Task;
+import org.javatuples.Pair;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
@@ -46,6 +47,30 @@ public class UserRegistrationProcessTest {
 
 	@Test
 	public void testUserRegistrationInvalidCode() {
+		Pair<String, Task> pair = goToFirstAdminTask();
+		String key = pair.getValue0();
+		Task task = pair.getValue1();
+
+		Optional<TaskFormData> taskForm = process.getTaskForm(task);
+		assertTrue(taskForm.isPresent());
+		process.completeTask(task, Map.of("path", "END"));
+		assertNull(process.processInstance(key));
+	}
+
+	@Test
+	public void testUserRegistrationInvalidCodeWithAdminContinuation() {
+		Pair<String, Task> pair = goToFirstAdminTask();
+		String key = pair.getValue0();
+		Task task = pair.getValue1();
+
+		process.completeTask(task, Map.of("path", "CONTINUE"));
+		assertNotNull(process.processInstance(key));
+
+		List<Task> tasks = process.findActiveTasks(key);
+		// TODOLF this task should already be assigned to the same admin, and isn't
+	}
+
+	public Pair<String, Task> goToFirstAdminTask() {
 		String key = process.start(PHONE, CountryCode.PL);
 		assertNotNull(process.processInstance(key));
 		process.sendUserForm(key, "user@luna", "1235");
@@ -67,10 +92,7 @@ public class UserRegistrationProcessTest {
 		assertEquals(1, tasks.size());
 		task = tasks.iterator().next();
 
-		Optional<TaskFormData> taskForm = process.getTaskForm(task);
-		assertTrue(taskForm.isPresent());
-		process.completeTask(task, Map.of("path", "END"));
-		assertNull(process.processInstance(key));
+		return new Pair<>(key, task);
 	}
 
 }
