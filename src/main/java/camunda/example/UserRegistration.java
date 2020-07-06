@@ -27,6 +27,7 @@ public class UserRegistration implements Serializable {
 	protected String lastName;
 	@Email protected String email;
 	protected String country;
+	protected boolean codeVerificationStatus = false;
 
 	public String getPhone() {
 		return phone;
@@ -78,6 +79,14 @@ public class UserRegistration implements Serializable {
 
 	public String variableName() {
 		return NAME;
+	}
+
+	public boolean isCodeVerificationStatus() {
+		return codeVerificationStatus;
+	}
+
+	public void setCodeVerificationStatus(boolean codeVerificationStatus) {
+		this.codeVerificationStatus = codeVerificationStatus;
 	}
 
 	public void bindToExecution(@Nonnull DelegateExecution execution) {

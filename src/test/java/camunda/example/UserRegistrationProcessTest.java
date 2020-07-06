@@ -26,11 +26,12 @@ public class UserRegistrationProcessTest {
 		Assertions.assertThrows(ProcessEngineException.class, () -> process.start(PHONE, CountryCode.FR));
 	}
 
-
 	@Test
 	public void testUserRegistationHappyPath() {
 		String key = process.start(PHONE, CountryCode.PL);
-		process.sendUserForm(key, "user@luna");
+		Assertions.assertNotNull(process.processInstance(key));
+		process.sendUserForm(key, "user@luna", "1234");
+		Assertions.assertNull(process.processInstance(key));
 	}
 
 }

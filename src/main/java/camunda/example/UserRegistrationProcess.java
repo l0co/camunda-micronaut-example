@@ -34,6 +34,7 @@ public class UserRegistrationProcess {
 	public static final String BEAN_NAME = "userRegistrationProcess";
 
 	public static final Logger logger = LoggerFactory.getLogger(UserRegistrationProcess.class);
+	public static final String TEST_CODE = "1234";
 
 	@Inject protected RepositoryService repositoryService;
 	@Inject protected FormService formService;
@@ -107,17 +108,21 @@ public class UserRegistrationProcess {
 			throw new ConstraintViolationException(cv);
 	}
 
-	public String systemSendVerificationCode(@Nonnull DelegateExecution execution, @Nonnull UserRegistration model) {
+	public void systemSendVerificationCode(@Nonnull DelegateExecution execution, @Nonnull UserRegistration model) {
 		logger.debug("Sending verification code to phone: {}", model.getPhone());
-		return "1234";
 	}
 
-	public void sendUserForm(@Nonnull String processBusinessKey, @Nonnull String email) {
+	public void sendUserForm(@Nonnull String processBusinessKey, @Nonnull String email, @Nonnull String code) {
 		ProcessInstance processInstance = processInstance(processBusinessKey);
 		Task task = findActiveTask(processInstance.getProcessInstanceId(), "user-send-form");
 		formService.submitTaskForm(task.getId(), Map.of(
-			"email", email
+			"email", email,
+			"code", code
 		));
+	}
+
+	public void systemVerifyCode(@Nonnull DelegateExecution execution, @Nonnull UserRegistration model) {
+		model.setCodeVerificationStatus(TEST_CODE.equals(model.getCode()));
 	}
 
 	/**********************************************************************************************************
@@ -128,7 +133,7 @@ public class UserRegistrationProcess {
 		return repositoryService.createProcessDefinitionQuery().processDefinitionKey(processDefinitionKey).singleResult();
 	}
 
-	protected ProcessInstance processInstance(String businessKey) {
+	public ProcessInstance processInstance(String businessKey) {
 		return runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(businessKey).singleResult();
 	}
 
