@@ -169,8 +169,12 @@ public class UserRegistrationProcess {
 			.list();
 	}
 
-	public void assignTask(@Nonnull Task task, @Nonnull String userId) {
-		taskService.setAssignee(task.getId(), userId);
+	public void claimTask(@Nonnull Task task, @Nonnull String userId) {
+		taskService.claim(task.getId(), userId);
+	}
+
+	public void completeTask(@Nonnull Task task) {
+		taskService.complete(task.getId());
 	}
 
 	protected UserRegistration findModel(@Nonnull DelegateExecution execution) {

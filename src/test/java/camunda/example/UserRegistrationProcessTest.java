@@ -55,13 +55,17 @@ public class UserRegistrationProcessTest {
 		assertEquals(1, tasks.size());
 		Task task = tasks.iterator().next();
 
-		process.assignTask(task, ADMIN_ID);
+		process.claimTask(task, ADMIN_ID);
 
 		tasks = process.findUnassignedActiveTasks(key, List.of(ROLE_ADMIN));
 		assertEquals(0, tasks.size());
 
 		tasks = process.findActiveTasksAssignedToUser(key, ADMIN_ID);
 		assertEquals(1, tasks.size());
+		task = tasks.iterator().next();
+
+		process.completeTask(task);
+		assertNull(process.processInstance(key));
 	}
 
 }
