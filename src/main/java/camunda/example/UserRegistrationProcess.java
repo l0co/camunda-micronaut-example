@@ -95,11 +95,12 @@ public class UserRegistrationProcess {
 	}
 
 	public void bind(@Nonnull DelegateExecution execution) {
-		((UserRegistration) execution.getVariable(UserRegistration.NAME)).bindToExecution(execution);
+		findModel(execution).bindToExecution(execution);
 	}
 
-	public void systemSendVerificationCode(@Nonnull DelegateExecution execution) {
-		System.out.println(""); // TODOLF implement UserRegistrationProcess.systemSendVerificationCode()
+	public String systemSendVerificationCode(@Nonnull DelegateExecution execution, @Nonnull UserRegistration model) {
+		logger.debug("Sending verification code to phone: {}", model.getPhone());
+		return "1234";
 	}
 
 	/**********************************************************************************************************
@@ -116,6 +117,10 @@ public class UserRegistrationProcess {
 
 	protected Task findTask(@Nonnull String processInstanceId, @Nonnull String taskDefinitionKey) {
 		return taskService.createTaskQuery().processInstanceId(processInstanceId).taskDefinitionKey("user-send-phone").singleResult();
+	}
+
+	protected UserRegistration findModel(@Nonnull DelegateExecution execution) {
+		return ((UserRegistration) execution.getVariable(UserRegistration.NAME));
 	}
 
 	/**********************************************************************************************************

@@ -40,7 +40,10 @@
       <bpmn:outgoing>Flow_1rndfkf</bpmn:outgoing>
       <bpmn:outgoing>Flow_0jessyt</bpmn:outgoing>
     </bpmn:parallelGateway>
-    <bpmn:serviceTask id="system-send-verification-code" name="Send verification code" camunda:expression="${userRegistrationProcess.systemSendVerificationCode(execution)}" camunda:resultVariable="code">
+    <bpmn:serviceTask id="system-send-verification-code" name="Send verification code" camunda:expression="${userRegistrationProcess.systemSendVerificationCode(execution, registration)}" camunda:resultVariable="code">
+      <bpmn:extensionElements>
+        <camunda:executionListener expression="${userRegistrationProcess.bind(execution)}" event="end" />
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1rndfkf</bpmn:incoming>
       <bpmn:outgoing>Flow_0rans8i</bpmn:outgoing>
     </bpmn:serviceTask>
