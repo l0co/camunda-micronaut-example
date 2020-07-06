@@ -30,6 +30,7 @@ public class UserRegistrationProcessTest {
 	@Test
 	public void testUserRegistationHappyPath() {
 		String key = process.start(PHONE, CountryCode.PL);
+		process.sendUserForm(key, "user@luna");
 	}
 
 }

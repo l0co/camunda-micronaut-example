@@ -77,7 +77,7 @@ public class UserRegistrationProcess {
 				.businessKey(processBusinessKey)
 				.execute();
 
-			Task task = findTask(instance.getRootProcessInstanceId(), "user-send-phone");
+			Task task = findActiveTask(instance.getRootProcessInstanceId(), "user-send-phone");
 			formService.submitTaskForm(task.getId(), Map.of(
 				"phone", phone,
 				"country", countryCode.toString()
@@ -112,6 +112,14 @@ public class UserRegistrationProcess {
 		return "1234";
 	}
 
+	public void sendUserForm(@Nonnull String processBusinessKey, @Nonnull String email) {
+		ProcessInstance processInstance = processInstance(processBusinessKey);
+		Task task = findActiveTask(processInstance.getProcessInstanceId(), "user-send-form");
+		formService.submitTaskForm(task.getId(), Map.of(
+			"email", email
+		));
+	}
+
 	/**********************************************************************************************************
 	 * Could go into the super class
 	 **********************************************************************************************************/
@@ -124,8 +132,12 @@ public class UserRegistrationProcess {
 		return runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(businessKey).singleResult();
 	}
 
-	protected Task findTask(@Nonnull String processInstanceId, @Nonnull String taskDefinitionKey) {
-		return taskService.createTaskQuery().processInstanceId(processInstanceId).taskDefinitionKey(taskDefinitionKey).singleResult();
+	protected Task findActiveTask(@Nonnull String processInstanceId, @Nonnull String taskDefinitionKey) {
+		return taskService.createTaskQuery()
+			.processInstanceId(processInstanceId)
+			.taskDefinitionKey(taskDefinitionKey)
+			.active()
+			.singleResult();
 	}
 
 	protected UserRegistration findModel(@Nonnull DelegateExecution execution) {

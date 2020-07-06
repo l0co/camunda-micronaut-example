@@ -51,9 +51,9 @@
       <bpmn:extensionElements>
         <camunda:formData>
           <camunda:formField id="email" label="Email" type="string">
-            <camunda:validation>
-              <camunda:constraint name="email" />
-            </camunda:validation>
+            <camunda:properties>
+              <camunda:property id="validator.email" />
+            </camunda:properties>
           </camunda:formField>
         </camunda:formData>
         <camunda:executionListener expression="${userRegistrationProcess.bind(execution)}" event="end" />
