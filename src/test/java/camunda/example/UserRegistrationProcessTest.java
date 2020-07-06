@@ -26,24 +26,24 @@ public class UserRegistrationProcessTest {
 	public static final String ADMIN_ID = "1";
 
 	@Inject protected ProcessService processService;
-	@Inject protected UserRegistrationProcess process;
+	@Inject protected UserRegistrationProcess userRegistrationProcess;
 
 	public static final String PHONE = "+00123456789";
 
 	@Test
 	public void testUserRegistationStartFormValidation() {
 		// Invalid phone (minlength=6)
-		Assertions.assertThrows(FormFieldValidatorException.class, () -> process.start("11", CountryCode.PL));
+		Assertions.assertThrows(FormFieldValidatorException.class, () -> userRegistrationProcess.start("11", CountryCode.PL));
 		// Invalid value for enum form property: FR (we only allow PL and GB in the process config)
-		Assertions.assertThrows(ProcessEngineException.class, () -> process.start(PHONE, CountryCode.FR));
+		Assertions.assertThrows(ProcessEngineException.class, () -> userRegistrationProcess.start(PHONE, CountryCode.FR));
 	}
 
 	@Test
 	public void testUserRegistrationHappyPath() {
-		String key = process.start(PHONE, CountryCode.PL);
+		String key = userRegistrationProcess.start(PHONE, CountryCode.PL);
 		assertNotNull(processService.processInstance(key));
-		process.sendUserForm(key, "user@luna", "1234");
-		assertNull(processService.processInstance(key));
+		userRegistrationProcess.sendUserForm(key, "user@luna", "1234");
+		assertNull(processService.processInstance(key)); // process finished
 	}
 
 	@Test
@@ -55,7 +55,7 @@ public class UserRegistrationProcessTest {
 		Optional<TaskFormData> taskForm = processService.getTaskForm(task);
 		assertTrue(taskForm.isPresent());
 		processService.completeTask(task, Map.of("path", "END"));
-		assertNull(processService.processInstance(key));
+		assertNull(processService.processInstance(key)); // process finished
 	}
 
 	@Test
@@ -67,15 +67,24 @@ public class UserRegistrationProcessTest {
 		processService.completeTask(task, Map.of("path", "CONTINUE"));
 		assertNotNull(processService.processInstance(key));
 
+		// verify new task has been auto assigned by our custom feature
 		List<Task> tasks = processService.findActiveTasks(key);
-		// TODOLF this task should already be assigned to the same admin, and isn't
-		// TODOLF check the task have no form
+		assertEquals(1, tasks.size());
+		tasks = processService.findUnassignedActiveTasks(key, List.of(ROLE_ADMIN));
+		assertEquals(0, tasks.size());
+		tasks = processService.findActiveTasksAssignedToUser(key, ADMIN_ID);
+		assertEquals(1, tasks.size());
+
+		task = tasks.iterator().next();
+		assertFalse(processService.getTaskForm(task).isPresent());
+		processService.completeTask(task); // complete task without the form
+		assertNull(processService.processInstance(key)); // process finished
 	}
 
 	public Pair<String, Task> goToFirstAdminTask() {
-		String key = process.start(PHONE, CountryCode.PL);
+		String key = userRegistrationProcess.start(PHONE, CountryCode.PL);
 		assertNotNull(processService.processInstance(key));
-		process.sendUserForm(key, "user@luna", "1235");
+		userRegistrationProcess.sendUserForm(key, "user@luna", "1235");
 		assertNotNull(processService.processInstance(key));
 
 		List<Task> tasks = processService.findActiveTasks(key);

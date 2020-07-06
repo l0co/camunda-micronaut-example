@@ -1,12 +1,17 @@
 package camunda.example;
 
-import org.camunda.bpm.engine.*;
+import org.camunda.bpm.engine.FormService;
+import org.camunda.bpm.engine.RepositoryService;
+import org.camunda.bpm.engine.RuntimeService;
+import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.form.TaskFormData;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
 import org.camunda.bpm.model.bpmn.BpmnModelInstance;
 import org.camunda.bpm.model.bpmn.instance.Lane;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
 import javax.inject.Inject;
@@ -14,13 +19,14 @@ import javax.inject.Singleton;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * @author Lukasz Frankowski
  */
 @Singleton
 public class ProcessService {
+
+	public static final Logger logger = LoggerFactory.getLogger(ProcessService.class);
 
 	@Inject protected RepositoryService repositoryService;
 	@Inject protected FormService formService;
@@ -96,6 +102,18 @@ public class ProcessService {
 		return String.format("autoassignment.%s", lane.getId());
 	}
 
+	public void tryAutoAssignTask(@Nonnull Task task) {
+		findTaskLane(task).ifPresent(lane -> {
+			// so we have lane found here and we can read user from process variables
+			String userId = (String) runtimeService.getVariable(task.getProcessInstanceId(), buildAutoAssignmentKey(lane));
+			if (userId!=null) {
+				logger.debug("Automatically claiming task: {}, lane: {}, process: {} to user: {}",
+					task.getTaskDefinitionKey(), lane.getId(), task.getProcessDefinitionId(), userId);
+				claimTask(task, userId, false);
+			}
+		});
+	}
+
 	/**
 	 * Completes task with no form filling
 	 */
@@ -104,7 +122,10 @@ public class ProcessService {
 	}
 
 	public Optional<TaskFormData> getTaskForm(@Nonnull Task task) {
-		return Optional.ofNullable(formService.getTaskFormData(task.getId()));
+		TaskFormData form = formService.getTaskFormData(task.getId());
+		if (form.getFormFields().isEmpty())
+			return Optional.empty();
+		return Optional.of(formService.getTaskFormData(task.getId()));
 	}
 
 	public void completeTask(@Nonnull Task task, @Nonnull Map<String, Object> form) {
