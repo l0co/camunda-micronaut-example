@@ -4,9 +4,11 @@ import org.camunda.bpm.engine.FormService;
 import org.camunda.bpm.engine.RepositoryService;
 import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
+import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.form.FormData;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
+import org.camunda.bpm.engine.task.Task;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -17,6 +19,7 @@ import javax.validation.constraints.Email;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
 import java.io.Serializable;
+import java.lang.reflect.Field;
 import java.util.Map;
 import java.util.UUID;
 
@@ -61,29 +64,42 @@ public class UserRegistrationProcess {
 		// business keys, like "MyEntity:ID:shipmentProcess"
 		String processBusinessKey = UUID.randomUUID().toString();
 
-		if (false) {
+		if (true) {
 
 			// this example shows how to start a process with custom business key, but without form data
-			// though we won't use this method, because we have some form data
 			instance = runtimeService.createProcessInstanceByKey(USER_REGISTRATION_PROCESS)
 				.setVariable(UserRegistration.NAME, new UserRegistration())
 				.businessKey(processBusinessKey)
 				.execute();
 
+			Task task = findTask(instance.getRootProcessInstanceId(), "user-send-phone");
+			formService.submitTaskForm(task.getId(), Map.of(
+				"phone", phone,
+				"country", countryCode.toString()
+			));
+
 		} else {
 
 			// this example shows how to start a process with custom business key with form data
+			// NEVER USE THIS, because you cannot set own variables (even if you put setting variables after the line below, firstly
+			// the other states executors will be executed, and only THEN the variable will be set)
+			// it's better to use first task form instead of start form
 			instance = formService.submitStartForm(processDefinition(USER_REGISTRATION_PROCESS).getId(), processBusinessKey, Map.of(
 				"phone", phone,
 				"country", countryCode.toString()
 			));
-			runtimeService.setVariable(instance.getProcessInstanceId(), UserRegistration.NAME, new UserRegistration());
 
 		}
 
-		// TODOLF at this point we have following variables on this process instance: registration, phone and country
-
 		return instance.getBusinessKey();
+	}
+
+	public void bind(@Nonnull DelegateExecution execution) {
+		((UserRegistration) execution.getVariable(UserRegistration.NAME)).bindToExecution(execution);
+	}
+
+	public void systemSendVerificationCode(@Nonnull DelegateExecution execution) {
+		System.out.println(""); // TODOLF implement UserRegistrationProcess.systemSendVerificationCode()
 	}
 
 	/**********************************************************************************************************
@@ -98,6 +114,10 @@ public class UserRegistrationProcess {
 		return runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(businessKey).singleResult();
 	}
 
+	protected Task findTask(@Nonnull String processInstanceId, @Nonnull String taskDefinitionKey) {
+		return taskService.createTaskQuery().processInstanceId(processInstanceId).taskDefinitionKey("user-send-phone").singleResult();
+	}
+
 	/**********************************************************************************************************
 	 * Model to keep process variables in a standarized from
 	 **********************************************************************************************************/
@@ -105,13 +125,15 @@ public class UserRegistrationProcess {
 	public static class UserRegistration implements Serializable {
 
 		public static final String NAME = "registration";
+		
 		private static final long serialVersionUID = 8430676294952662979L;
+
 		@Pattern(regexp = "\\+\\d{11}?") protected String phone;
 		@Size(min = 6, max = 6) protected String code;
 		protected String firstName;
 		protected String lastName;
 		@Email protected String email;
-		protected CountryCode country;
+		protected String country;
 
 		public String getPhone() {
 			return phone;
@@ -153,12 +175,32 @@ public class UserRegistrationProcess {
 			this.email = email;
 		}
 
-		public CountryCode getCountry() {
+		public String getCountry() {
 			return country;
 		}
 
-		public void setCountry(CountryCode country) {
+		public void setCountry(String country) {
 			this.country = country;
 		}
+
+		public String variableName() {
+			return NAME;
+		}
+
+		public void bindToExecution(@Nonnull DelegateExecution execution) {
+			execution.getVariables().forEach((name, value) -> {
+				if (!variableName().equals(name)) {
+					try {
+						Field field = getClass().getDeclaredField(name);
+						field.setAccessible(true);
+						field.set(this, value);
+						execution.removeVariable(name);
+					} catch (Exception e) {
+						logger.warn(String.format("Can't bind property: %s on class: %s", name, getClass().getSimpleName()), e);
+					}
+				}
+			});
+		}
+
 	}
 }
