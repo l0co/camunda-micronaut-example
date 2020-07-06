@@ -161,6 +161,18 @@ public class UserRegistrationProcess {
 			.singleResult();
 	}
 
+	public List<Task> findActiveTasksAssignedToUser(@Nonnull String processBusinessKey, @Nonnull String userId) {
+		return taskService.createTaskQuery()
+			.processInstanceBusinessKey(processBusinessKey)
+			.taskAssignee(userId)
+			.active()
+			.list();
+	}
+
+	public void assignTask(@Nonnull Task task, @Nonnull String userId) {
+		taskService.setAssignee(task.getId(), userId);
+	}
+
 	protected UserRegistration findModel(@Nonnull DelegateExecution execution) {
 		return ((UserRegistration) execution.getVariable(UserRegistration.NAME));
 	}
