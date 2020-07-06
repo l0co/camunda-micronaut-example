@@ -23,7 +23,7 @@ public class UserRegistration implements Serializable {
 
 	@Pattern(regexp = "\\+\\d{11}?") protected String phone;
 	@Size(min = 4, max = 4) protected String code;
-	protected String firstName; // TODOLF remove not null
+	protected String firstName;
 	protected String lastName;
 	@Email protected String email;
 	protected String country;
@@ -89,7 +89,8 @@ public class UserRegistration implements Serializable {
 					field.set(this, value);
 					execution.removeVariable(name);
 				} catch (Exception e) {
-					UserRegistrationProcess.logger.warn(String.format("Can't bind property: %s on class: %s", name, getClass().getSimpleName()), e);
+					UserRegistrationProcess.logger.debug("Can't bind property: {} on class: {} [{}/{}]", name,
+						getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
 				}
 			}
 		});

@@ -47,11 +47,16 @@
       <bpmn:incoming>Flow_1rndfkf</bpmn:incoming>
       <bpmn:outgoing>Flow_0rans8i</bpmn:outgoing>
     </bpmn:serviceTask>
-    <bpmn:userTask id="user-send-form" name="Send form">
+    <bpmn:userTask id="user-send-form" name="Send form" camunda:assignee="ANONYMOUS">
       <bpmn:extensionElements>
         <camunda:formData>
-          <camunda:formField id="email" label="Email" type="string" />
+          <camunda:formField id="email" label="Email" type="string">
+            <camunda:validation>
+              <camunda:constraint name="email" />
+            </camunda:validation>
+          </camunda:formField>
         </camunda:formData>
+        <camunda:executionListener expression="${userRegistrationProcess.bind(execution)}" event="end" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0jessyt</bpmn:incoming>
       <bpmn:outgoing>Flow_0tqzcsy</bpmn:outgoing>
