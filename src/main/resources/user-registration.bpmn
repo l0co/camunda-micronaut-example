@@ -48,6 +48,11 @@
       <bpmn:outgoing>Flow_0rans8i</bpmn:outgoing>
     </bpmn:serviceTask>
     <bpmn:userTask id="user-send-form" name="Send form">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="email" label="Email" type="string" />
+        </camunda:formData>
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_0jessyt</bpmn:incoming>
       <bpmn:outgoing>Flow_0tqzcsy</bpmn:outgoing>
     </bpmn:userTask>
@@ -64,7 +69,7 @@
     <bpmn:sequenceFlow id="Flow_0rans8i" sourceRef="system-send-verification-code" targetRef="Gateway_0685iaf" />
     <bpmn:sequenceFlow id="Flow_0tqzcsy" sourceRef="user-send-form" targetRef="Gateway_0685iaf" />
     <bpmn:sequenceFlow id="Flow_03spfle" sourceRef="Gateway_0685iaf" targetRef="Event_0ypixjy" />
-    <bpmn:userTask id="user-send-phone" name="Send phone">
+    <bpmn:userTask id="user-send-phone" name="Send phone" camunda:assignee="ANONYMOUS">
       <bpmn:extensionElements>
         <camunda:formData>
           <camunda:formField id="phone" label="Phone" type="string">

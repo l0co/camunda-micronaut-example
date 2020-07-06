@@ -125,7 +125,7 @@ public class UserRegistrationProcess {
 	}
 
 	protected Task findTask(@Nonnull String processInstanceId, @Nonnull String taskDefinitionKey) {
-		return taskService.createTaskQuery().processInstanceId(processInstanceId).taskDefinitionKey("user-send-phone").singleResult();
+		return taskService.createTaskQuery().processInstanceId(processInstanceId).taskDefinitionKey(taskDefinitionKey).singleResult();
 	}
 
 	protected UserRegistration findModel(@Nonnull DelegateExecution execution) {
