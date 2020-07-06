@@ -19,6 +19,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
+import java.util.List;
 import java.util.Map;
 import java.util.Set;
 import java.util.UUID;
@@ -78,7 +79,7 @@ public class UserRegistrationProcess {
 				.businessKey(processBusinessKey)
 				.execute();
 
-			Task task = findActiveTask(instance.getRootProcessInstanceId(), "user-send-phone");
+			Task task = findActiveTask(instance.getBusinessKey(), "user-send-phone");
 			formService.submitTaskForm(task.getId(), Map.of(
 				"phone", phone,
 				"country", countryCode.toString()
@@ -113,8 +114,7 @@ public class UserRegistrationProcess {
 	}
 
 	public void sendUserForm(@Nonnull String processBusinessKey, @Nonnull String email, @Nonnull String code) {
-		ProcessInstance processInstance = processInstance(processBusinessKey);
-		Task task = findActiveTask(processInstance.getProcessInstanceId(), "user-send-form");
+		Task task = findActiveTask(processBusinessKey, "user-send-form");
 		formService.submitTaskForm(task.getId(), Map.of(
 			"email", email,
 			"code", code
@@ -137,9 +137,25 @@ public class UserRegistrationProcess {
 		return runtimeService.createProcessInstanceQuery().processInstanceBusinessKey(businessKey).singleResult();
 	}
 
-	protected Task findActiveTask(@Nonnull String processInstanceId, @Nonnull String taskDefinitionKey) {
+	public List<Task> findActiveTasks(@Nonnull String processBusinessKey) {
 		return taskService.createTaskQuery()
-			.processInstanceId(processInstanceId)
+			.processInstanceBusinessKey(processBusinessKey)
+			.active()
+			.list();
+	}
+
+	public List<Task> findUnassignedActiveTasks(@Nonnull String processBusinessKey, @Nonnull List<String> assignableRoleNames) {
+		return taskService.createTaskQuery()
+			.processInstanceBusinessKey(processBusinessKey)
+			.active()
+			.taskUnassigned()
+			.taskCandidateGroupIn(assignableRoleNames)
+			.list();
+	}
+
+	public Task findActiveTask(@Nonnull String processBusinessKey, @Nonnull String taskDefinitionKey) {
+		return taskService.createTaskQuery()
+			.processInstanceBusinessKey(processBusinessKey)
 			.taskDefinitionKey(taskDefinitionKey)
 			.active()
 			.singleResult();

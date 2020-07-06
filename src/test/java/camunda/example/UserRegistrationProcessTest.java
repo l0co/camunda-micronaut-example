@@ -3,16 +3,23 @@ package camunda.example;
 import io.micronaut.test.annotation.MicronautTest;
 import org.camunda.bpm.engine.ProcessEngineException;
 import org.camunda.bpm.engine.impl.form.validator.FormFieldValidatorException;
+import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Assertions;
 import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
+import java.util.List;
+
+import static org.junit.jupiter.api.Assertions.*;
 
 /**
  * @author Lukasz Frankowski
  */
 @MicronautTest
 public class UserRegistrationProcessTest {
+
+	public static final String ROLE_ADMIN = "ROLE_ADMIN";
+	public static final String ADMIN_ID = "1";
 
 	@Inject protected UserRegistrationProcess process;
 
@@ -27,11 +34,25 @@ public class UserRegistrationProcessTest {
 	}
 
 	@Test
-	public void testUserRegistationHappyPath() {
+	public void testUserRegistrationHappyPath() {
 		String key = process.start(PHONE, CountryCode.PL);
-		Assertions.assertNotNull(process.processInstance(key));
+		assertNotNull(process.processInstance(key));
 		process.sendUserForm(key, "user@luna", "1234");
-		Assertions.assertNull(process.processInstance(key));
+		assertNull(process.processInstance(key));
+	}
+
+	@Test
+	public void testUserRegistrationInvalidCode() {
+		String key = process.start(PHONE, CountryCode.PL);
+		assertNotNull(process.processInstance(key));
+		process.sendUserForm(key, "user@luna", "1235");
+		assertNotNull(process.processInstance(key));
+
+		List<Task> tasks = process.findActiveTasks(key);
+		assertEquals(1, tasks.size());
+
+		tasks = process.findUnassignedActiveTasks(key, List.of(ROLE_ADMIN));
+		assertEquals(1, tasks.size());
 	}
 
 }
