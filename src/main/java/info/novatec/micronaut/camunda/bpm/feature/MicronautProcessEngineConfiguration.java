@@ -12,9 +12,12 @@ import org.slf4j.LoggerFactory;
 import org.springframework.core.io.Resource;
 import org.springframework.core.io.support.PathMatchingResourcePatternResolver;
 
+import javax.inject.Inject;
 import javax.inject.Singleton;
 import java.io.IOException;
 import java.util.Arrays;
+import java.util.List;
+import java.util.function.Consumer;
 
 @Factory
 public class MicronautProcessEngineConfiguration {
@@ -28,6 +31,8 @@ public class MicronautProcessEngineConfiguration {
     private final Configuration configuration;
 
     private final DatasourceConfiguration datasourceConfiguration;
+
+    private @Inject List<Consumer<ProcessEngineConfiguration>> processEngineConfigurationCustomizers;
 
     public MicronautProcessEngineConfiguration(ApplicationContext applicationContext, Configuration configuration, DatasourceConfiguration datasourceConfiguration) {
         this.applicationContext = applicationContext;
@@ -58,6 +63,8 @@ public class MicronautProcessEngineConfiguration {
                 .setHistory(configuration.getHistoryLevel())
                 .setJobExecutorActivate(true)
                 .setExpressionManager(new MicronautExpressionManager(new ApplicationContextElResolver(applicationContext)));
+
+        processEngineConfigurationCustomizers.forEach(c -> c.accept(processEngineConfiguration));
 
         ProcessEngine processEngine = processEngineConfiguration.buildProcessEngine();
         log.info("Successfully created process engine which is connected to database {}", datasourceConfiguration.getUrl());

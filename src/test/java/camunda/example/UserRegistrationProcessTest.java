@@ -25,6 +25,7 @@ public class UserRegistrationProcessTest {
 	public static final String ROLE_ADMIN = "ROLE_ADMIN";
 	public static final String ADMIN_ID = "1";
 
+	@Inject protected ProcessService processService;
 	@Inject protected UserRegistrationProcess process;
 
 	public static final String PHONE = "+00123456789";
@@ -40,9 +41,9 @@ public class UserRegistrationProcessTest {
 	@Test
 	public void testUserRegistrationHappyPath() {
 		String key = process.start(PHONE, CountryCode.PL);
-		assertNotNull(process.processInstance(key));
+		assertNotNull(processService.processInstance(key));
 		process.sendUserForm(key, "user@luna", "1234");
-		assertNull(process.processInstance(key));
+		assertNull(processService.processInstance(key));
 	}
 
 	@Test
@@ -51,10 +52,10 @@ public class UserRegistrationProcessTest {
 		String key = pair.getValue0();
 		Task task = pair.getValue1();
 
-		Optional<TaskFormData> taskForm = process.getTaskForm(task);
+		Optional<TaskFormData> taskForm = processService.getTaskForm(task);
 		assertTrue(taskForm.isPresent());
-		process.completeTask(task, Map.of("path", "END"));
-		assertNull(process.processInstance(key));
+		processService.completeTask(task, Map.of("path", "END"));
+		assertNull(processService.processInstance(key));
 	}
 
 	@Test
@@ -63,33 +64,33 @@ public class UserRegistrationProcessTest {
 		String key = pair.getValue0();
 		Task task = pair.getValue1();
 
-		process.completeTask(task, Map.of("path", "CONTINUE"));
-		assertNotNull(process.processInstance(key));
+		processService.completeTask(task, Map.of("path", "CONTINUE"));
+		assertNotNull(processService.processInstance(key));
 
-		List<Task> tasks = process.findActiveTasks(key);
+		List<Task> tasks = processService.findActiveTasks(key);
 		// TODOLF this task should already be assigned to the same admin, and isn't
 		// TODOLF check the task have no form
 	}
 
 	public Pair<String, Task> goToFirstAdminTask() {
 		String key = process.start(PHONE, CountryCode.PL);
-		assertNotNull(process.processInstance(key));
+		assertNotNull(processService.processInstance(key));
 		process.sendUserForm(key, "user@luna", "1235");
-		assertNotNull(process.processInstance(key));
+		assertNotNull(processService.processInstance(key));
 
-		List<Task> tasks = process.findActiveTasks(key);
+		List<Task> tasks = processService.findActiveTasks(key);
 		assertEquals(1, tasks.size());
 
-		tasks = process.findUnassignedActiveTasks(key, List.of(ROLE_ADMIN));
+		tasks = processService.findUnassignedActiveTasks(key, List.of(ROLE_ADMIN));
 		assertEquals(1, tasks.size());
 		Task task = tasks.iterator().next();
 
-		process.claimTask(task, ADMIN_ID);
+		processService.claimTask(task, ADMIN_ID);
 
-		tasks = process.findUnassignedActiveTasks(key, List.of(ROLE_ADMIN));
+		tasks = processService.findUnassignedActiveTasks(key, List.of(ROLE_ADMIN));
 		assertEquals(0, tasks.size());
 
-		tasks = process.findActiveTasksAssignedToUser(key, ADMIN_ID);
+		tasks = processService.findActiveTasksAssignedToUser(key, ADMIN_ID);
 		assertEquals(1, tasks.size());
 		task = tasks.iterator().next();
 
