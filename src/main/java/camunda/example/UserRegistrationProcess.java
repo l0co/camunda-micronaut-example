@@ -11,6 +11,8 @@ import org.camunda.bpm.engine.form.TaskFormData;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
+import org.camunda.bpm.model.bpmn.BpmnModelInstance;
+import org.camunda.bpm.model.bpmn.instance.Lane;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
@@ -168,9 +170,34 @@ public class UserRegistrationProcess {
 	}
 
 	public void claimTask(@Nonnull Task task, @Nonnull String userId) {
-		taskService.claim(task.getId(), userId);
+		claimTask(task, userId, true);
 	}
 
+	protected void claimTask(@Nonnull Task task, @Nonnull String userId, boolean assignLane) {
+		taskService.claim(task.getId(), userId);
+
+		// when the user claims task, we find the appropriate lane and will set him as default user for further auto assignment
+		// what surprisingly is not implemented in camunda
+		if (assignLane) {
+			findTaskLane(task).ifPresent(lane -> {
+				// so we have lane found here and we can store user into process variables
+				runtimeService.setVariable(task.getProcessInstanceId(), buildAutoAssignmentKey(lane), userId);
+			});
+		}
+	}
+
+	protected Optional<Lane> findTaskLane(@Nonnull Task task) {
+		BpmnModelInstance bpmnModel = repositoryService.getBpmnModelInstance(processDefinition(USER_REGISTRATION_PROCESS).getId());
+		return bpmnModel.getModelElementsByType(Lane.class).stream().filter(lane ->
+			lane.getFlowNodeRefs().stream()
+				.anyMatch(flowNode -> flowNode.getId().equals(task.getTaskDefinitionKey())))
+			.findAny();
+	}
+
+	protected String buildAutoAssignmentKey(@Nonnull Lane lane) {
+		return String.format("autoassignment.%s", lane.getId());
+	}
+	
 	/**
 	 * Completes task with no form filling
 	 */

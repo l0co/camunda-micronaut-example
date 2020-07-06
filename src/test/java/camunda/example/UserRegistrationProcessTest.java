@@ -68,6 +68,7 @@ public class UserRegistrationProcessTest {
 
 		List<Task> tasks = process.findActiveTasks(key);
 		// TODOLF this task should already be assigned to the same admin, and isn't
+		// TODOLF check the task have no form
 	}
 
 	public Pair<String, Task> goToFirstAdminTask() {

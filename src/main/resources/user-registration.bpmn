@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <bpmn:definitions xmlns:bpmn="http://www.omg.org/spec/BPMN/20100524/MODEL" xmlns:bpmndi="http://www.omg.org/spec/BPMN/20100524/DI" xmlns:dc="http://www.omg.org/spec/DD/20100524/DC" xmlns:camunda="http://camunda.org/schema/1.0/bpmn" xmlns:di="http://www.omg.org/spec/DD/20100524/DI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" id="Definitions_1t7ldid" targetNamespace="http://bpmn.io/schema/bpmn" exporter="Camunda Modeler" exporterVersion="4.0.0">
   <bpmn:collaboration id="user-registration-collaboration">
-    <bpmn:participant id="user-registration-lane" name="User registration" processRef="user-registration" />
+    <bpmn:participant id="user-registration-process" name="User registration" processRef="user-registration" />
   </bpmn:collaboration>
   <bpmn:process id="user-registration" isExecutable="true">
     <bpmn:laneSet id="LaneSet_1divcdk">
@@ -161,7 +161,7 @@
   </bpmn:process>
   <bpmndi:BPMNDiagram id="BPMNDiagram_1">
     <bpmndi:BPMNPlane id="BPMNPlane_1" bpmnElement="user-registration-collaboration">
-      <bpmndi:BPMNShape id="Participant_0y77gc4_di" bpmnElement="user-registration-lane" isHorizontal="true">
+      <bpmndi:BPMNShape id="Participant_0y77gc4_di" bpmnElement="user-registration-process" isHorizontal="true">
         <dc:Bounds x="190" y="110" width="1110" height="490" />
       </bpmndi:BPMNShape>
       <bpmndi:BPMNShape id="Lane_1q0rwqy_di" bpmnElement="user" isHorizontal="true">
