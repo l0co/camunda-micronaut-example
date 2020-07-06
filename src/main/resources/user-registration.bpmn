@@ -129,6 +129,17 @@
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${registration.codeVerificationStatus}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
     <bpmn:userTask id="admin-check-logs" name="Check logs" camunda:candidateGroups="ROLE_ADMIN">
+      <bpmn:extensionElements>
+        <camunda:formData>
+          <camunda:formField id="path" label="Path" type="enum">
+            <camunda:validation>
+              <camunda:constraint name="required" />
+            </camunda:validation>
+            <camunda:value id="END" name="I don&#39;t want to send info to user" />
+            <camunda:value id="CONTINUE" name="I want to send info to user" />
+          </camunda:formField>
+        </camunda:formData>
+      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1hkecmt</bpmn:incoming>
       <bpmn:outgoing>Flow_1dwu8rt</bpmn:outgoing>
       <bpmn:outgoing>Flow_1n0rm2g</bpmn:outgoing>
@@ -136,8 +147,12 @@
     <bpmn:sequenceFlow id="Flow_1hkecmt" sourceRef="Gateway_0swnyhi" targetRef="admin-check-logs">
       <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${!registration.codeVerificationStatus}</bpmn:conditionExpression>
     </bpmn:sequenceFlow>
-    <bpmn:sequenceFlow id="Flow_1dwu8rt" name="I want to send info to user&#10;&#10;" sourceRef="admin-check-logs" targetRef="admin-send-info" />
-    <bpmn:sequenceFlow id="Flow_1n0rm2g" name="I don&#39;t want to send info to user" sourceRef="admin-check-logs" targetRef="Event_0ypixjy" />
+    <bpmn:sequenceFlow id="Flow_1dwu8rt" name="I want to send info to user&#10;&#10;" sourceRef="admin-check-logs" targetRef="admin-send-info">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${path=='CONTINUE'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
+    <bpmn:sequenceFlow id="Flow_1n0rm2g" name="I don&#39;t want to send info to user" sourceRef="admin-check-logs" targetRef="Event_0ypixjy">
+      <bpmn:conditionExpression xsi:type="bpmn:tFormalExpression">${path=='END'}</bpmn:conditionExpression>
+    </bpmn:sequenceFlow>
     <bpmn:sequenceFlow id="Flow_0sdft2d" sourceRef="admin-send-info" targetRef="Event_0ypixjy" />
     <bpmn:task id="admin-send-info" name="Send info to user">
       <bpmn:incoming>Flow_1dwu8rt</bpmn:incoming>

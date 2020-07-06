@@ -2,6 +2,7 @@ package camunda.example;
 
 import io.micronaut.test.annotation.MicronautTest;
 import org.camunda.bpm.engine.ProcessEngineException;
+import org.camunda.bpm.engine.form.TaskFormData;
 import org.camunda.bpm.engine.impl.form.validator.FormFieldValidatorException;
 import org.camunda.bpm.engine.task.Task;
 import org.junit.jupiter.api.Assertions;
@@ -9,6 +10,8 @@ import org.junit.jupiter.api.Test;
 
 import javax.inject.Inject;
 import java.util.List;
+import java.util.Map;
+import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.*;
 
@@ -64,7 +67,9 @@ public class UserRegistrationProcessTest {
 		assertEquals(1, tasks.size());
 		task = tasks.iterator().next();
 
-		process.completeTask(task);
+		Optional<TaskFormData> taskForm = process.getTaskForm(task);
+		assertTrue(taskForm.isPresent());
+		process.completeTask(task, Map.of("path", "END"));
 		assertNull(process.processInstance(key));
 	}
 

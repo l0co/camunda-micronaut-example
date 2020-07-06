@@ -7,6 +7,7 @@ import org.camunda.bpm.engine.RuntimeService;
 import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.form.FormData;
+import org.camunda.bpm.engine.form.TaskFormData;
 import org.camunda.bpm.engine.repository.ProcessDefinition;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
 import org.camunda.bpm.engine.task.Task;
@@ -19,10 +20,7 @@ import javax.inject.Named;
 import javax.inject.Singleton;
 import javax.validation.ConstraintViolation;
 import javax.validation.ConstraintViolationException;
-import java.util.List;
-import java.util.Map;
-import java.util.Set;
-import java.util.UUID;
+import java.util.*;
 
 /**
  * User registration process bean.
@@ -173,8 +171,19 @@ public class UserRegistrationProcess {
 		taskService.claim(task.getId(), userId);
 	}
 
+	/**
+	 * Completes task with no form filling
+	 */
 	public void completeTask(@Nonnull Task task) {
 		taskService.complete(task.getId());
+	}
+
+	public Optional<TaskFormData> getTaskForm(@Nonnull Task task) {
+		return Optional.ofNullable(formService.getTaskFormData(task.getId()));
+	}
+
+	public void completeTask(@Nonnull Task task, @Nonnull Map<String, Object> form) {
+		formService.submitTaskForm(task.getId(), form);
 	}
 
 	protected UserRegistration findModel(@Nonnull DelegateExecution execution) {
