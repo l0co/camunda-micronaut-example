@@ -3,16 +3,12 @@ package camunda.example.rest;
 import com.kpavlov.netty.jaxrs.jersey.JaxrsNettyServer;
 import io.micronaut.context.annotation.Context;
 import org.camunda.bpm.engine.rest.impl.CamundaRestResources;
-import org.camunda.bpm.tasklist.Tasklist;
-import org.camunda.bpm.tasklist.impl.DefaultTasklistRuntimeDelegate;
-import org.camunda.bpm.tasklist.impl.web.TasklistApplication;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.PostConstruct;
 import javax.annotation.PreDestroy;
 import javax.ws.rs.core.Application;
-import java.util.HashSet;
 import java.util.LinkedHashSet;
 import java.util.Set;
 
