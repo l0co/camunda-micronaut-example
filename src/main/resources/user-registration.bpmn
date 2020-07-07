@@ -4,12 +4,6 @@
     <bpmn:participant id="user-registration-process" name="User registration" processRef="userRegistrationProcess" />
   </bpmn:collaboration>
   <bpmn:process id="userRegistrationProcess" isExecutable="true">
-    <bpmn:extensionElements>
-      <camunda:properties>
-        <camunda:property name="assignment" value="auto" />
-        <camunda:property name="bind" value="auto" />
-      </camunda:properties>
-    </bpmn:extensionElements>
     <bpmn:laneSet id="LaneSet_1divcdk">
       <bpmn:lane id="user" name="User">
         <bpmn:flowNodeRef>start</bpmn:flowNodeRef>
@@ -44,6 +38,9 @@
             <camunda:value id="GB" name="United Kingdom" />
           </camunda:formField>
         </camunda:formData>
+        <camunda:properties>
+          <camunda:property name="assignment" value="auto" />
+        </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:outgoing>Flow_1xtksgl</bpmn:outgoing>
     </bpmn:startEvent>
