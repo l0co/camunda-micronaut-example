@@ -1,3 +1,9 @@
 micronaut:
   application:
     name: camunda-example
+  router:
+    static-resources:
+      default:
+        enabled: true
+        mapping: "/$APP_ROOT/**"
+        paths: "classpath:/META-INF/resources/webjars/camunda"
