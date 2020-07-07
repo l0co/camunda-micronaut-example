@@ -49,30 +49,32 @@ public abstract class BaseProcessHandler<M extends BaseProcessModel> {
 	}
 
 	public void bind(@Nonnull DelegateExecution execution) {
-		M model = findModel(execution);
+		findModel(execution).ifPresent(model -> {
 
-		execution.getVariables().forEach((name, value) -> {
-			if (!modelName().equals(name)) {
-				try {
-					Field field = model.getClass().getDeclaredField(name);
-					field.setAccessible(true);
-					field.set(model, value);
-					execution.removeVariable(name);
-				} catch (Exception e) {
-					UserRegistrationProcess.logger.debug("Can't bind property: {} on class: {} [{}/{}]", name,
-						getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
+			execution.getVariables().forEach((name, value) -> {
+				if (!modelName().equals(name)) {
+					try {
+						Field field = model.getClass().getDeclaredField(name);
+						field.setAccessible(true);
+						field.set(model, value);
+						execution.removeVariable(name);
+					} catch (Exception e) {
+						UserRegistrationProcess.logger.debug("Can't bind property: {} on class: {} [{}/{}]", name,
+							getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
+					}
 				}
-			}
-		});
+			});
 
-		Set<ConstraintViolation<M>> cv = validator.validate(model);
-		if (!cv.isEmpty())
-			throw new ConstraintViolationException(cv);
+			Set<ConstraintViolation<M>> cv = validator.validate(model);
+			if (!cv.isEmpty())
+				throw new ConstraintViolationException(cv);
+
+		});
 	}
 
 	@SuppressWarnings("unchecked")
-	protected M findModel(@Nonnull DelegateExecution execution) {
-		return ((M) execution.getVariable(modelName()));
+	protected Optional<M> findModel(@Nonnull DelegateExecution execution) {
+		return Optional.ofNullable((M) execution.getVariable(modelName()));
 	}
 
 	public ProcessDefinition processDefinition() {

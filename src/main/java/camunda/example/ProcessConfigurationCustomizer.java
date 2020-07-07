@@ -1,8 +1,10 @@
 package camunda.example;
 
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
+import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.TaskListener;
 import org.camunda.bpm.engine.impl.bpmn.behavior.UserTaskActivityBehavior;
+import org.camunda.bpm.engine.impl.bpmn.listener.ExpressionExecutionListener;
 import org.camunda.bpm.engine.impl.bpmn.parser.AbstractBpmnParseListener;
 import org.camunda.bpm.engine.impl.bpmn.parser.BpmnParseListener;
 import org.camunda.bpm.engine.impl.cfg.StandaloneProcessEngineConfiguration;
@@ -36,11 +38,15 @@ public class ProcessConfigurationCustomizer implements Consumer<ProcessEngineCon
 		
 		list.add(new AbstractBpmnParseListener() {
 
+			protected String processKey = null;
 			protected boolean enableAutoAssignment = false;
+			protected boolean enableAutoBind = false;
 
 			@Override
 			public void parseStartEvent(Element startEventElement, ScopeImpl scope, ActivityImpl startEventActivity) {
 				super.parseStartEvent(startEventElement, scope, startEventActivity);
+
+				processKey = ((ProcessDefinitionEntity) startEventActivity.getProcessDefinition()).getKey();
 
 				Optional.ofNullable(startEventElement.element("extensionElements"))
 					.map(extensionElements -> extensionElements.element("properties"))
@@ -50,6 +56,11 @@ public class ProcessConfigurationCustomizer implements Consumer<ProcessEngineCon
 						if ("assignment".equals(property.attribute("name"))
 								&& "auto".equals(property.attribute("value")))
 							enableAutoAssignment = true;
+
+						// enable auto bind
+						if ("bind".equals(property.attribute("name"))
+								&& "auto".equals(property.attribute("value")))
+							enableAutoBind = true;
 
 					}));
 
@@ -68,11 +79,25 @@ public class ProcessConfigurationCustomizer implements Consumer<ProcessEngineCon
 							config.getExpressionManager().createExpression("${processService.tryAutoAssignTask(task)}")));
 				}
 
+				enableAutoBind(activity);
+			}
+
+			@Override
+			public void parseServiceTask(Element serviceTaskElement, ScopeImpl scope, ActivityImpl activity) {
+				super.parseServiceTask(serviceTaskElement, scope, activity);
+				enableAutoBind(activity);
+			}
+
+			protected void enableAutoBind(ActivityImpl activity) {
+				if (enableAutoBind) {
+					activity.addListener(ExecutionListener.EVENTNAME_END, new ExpressionExecutionListener(
+						config.getExpressionManager().createExpression(String.format("${%s.bind(execution)}", processKey))));
+				}
 			}
 
 		});
 
-		config.setCustomPreBPMNParseListeners(list);
+		config.setCustomPostBPMNParseListeners(list);
 	}
 
 }

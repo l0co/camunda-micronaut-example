@@ -40,6 +40,7 @@
         </camunda:formData>
         <camunda:properties>
           <camunda:property name="assignment" value="auto" />
+          <camunda:property name="bind" value="auto" />
         </camunda:properties>
       </bpmn:extensionElements>
       <bpmn:outgoing>Flow_1xtksgl</bpmn:outgoing>
@@ -50,9 +51,6 @@
       <bpmn:outgoing>Flow_0jessyt</bpmn:outgoing>
     </bpmn:parallelGateway>
     <bpmn:serviceTask id="system-send-verification-code" name="Send verification code" camunda:expression="${userRegistrationProcess.systemSendVerificationCode(execution, registration)}">
-      <bpmn:extensionElements>
-        <camunda:executionListener expression="${userRegistrationProcess.bind(execution)}" event="end" />
-      </bpmn:extensionElements>
       <bpmn:incoming>Flow_1rndfkf</bpmn:incoming>
       <bpmn:outgoing>Flow_0rans8i</bpmn:outgoing>
     </bpmn:serviceTask>
@@ -73,7 +71,6 @@
             </camunda:validation>
           </camunda:formField>
         </camunda:formData>
-        <camunda:executionListener expression="${userRegistrationProcess.bind(execution)}" event="end" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_0jessyt</bpmn:incoming>
       <bpmn:outgoing>Flow_0tqzcsy</bpmn:outgoing>
@@ -105,7 +102,6 @@
             <camunda:value id="GB" name="United Kingdom" />
           </camunda:formField>
         </camunda:formData>
-        <camunda:executionListener expression="${userRegistrationProcess.bind(execution)}" event="end" />
       </bpmn:extensionElements>
       <bpmn:incoming>Flow_1xtksgl</bpmn:incoming>
       <bpmn:outgoing>Flow_0fib33j</bpmn:outgoing>
