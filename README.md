@@ -1,4 +1,4 @@
-# Camunda example with Micronaut
+# Camunda process example with Micronaut
 
 This project is a simple example of [Camunda](https://camunda.com/) process deployed and run in [Micronaut](https://micronaut.io/) environment using [micronaut-camunda-bpm](https://github.com/NovatecConsulting/micronaut-camunda-bpm). I wanted to see here how both technologies cooperate with each other (well) and if Camunda is also such a crude technology like [Activiti](https://www.activiti.org/) in which it is very hard to accomplish anything what original creators didn't have on mind (it is, but the modeler is better :)).
 
