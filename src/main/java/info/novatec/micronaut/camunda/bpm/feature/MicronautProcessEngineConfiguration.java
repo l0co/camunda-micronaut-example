@@ -19,7 +19,9 @@ import java.util.Arrays;
 import java.util.List;
 import java.util.function.Consumer;
 
-// TODOLF pull request
+/**
+ * This class is overridden from the source lib to provide {@link #processEngineConfigurationCustomizers} feature.
+ */
 @Factory
 public class MicronautProcessEngineConfiguration {
 

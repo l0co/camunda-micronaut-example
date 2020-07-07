@@ -1,23 +1,16 @@
 package camunda.example;
 
 import io.micronaut.core.annotation.Introspected;
-import org.camunda.bpm.engine.delegate.DelegateExecution;
 
-import javax.annotation.Nonnull;
 import javax.validation.constraints.Email;
-import javax.validation.constraints.NotNull;
 import javax.validation.constraints.Pattern;
 import javax.validation.constraints.Size;
-import java.io.Serializable;
-import java.lang.reflect.Field;
 
 /**
  * Model to keep process variables in a standarized from
  */
 @Introspected
-public class UserRegistration implements Serializable {
-
-	public static final String NAME = "registration";
+public class UserRegistration extends BaseProcessModel {
 
 	private static final long serialVersionUID = 8430676294952662979L;
 
@@ -77,32 +70,12 @@ public class UserRegistration implements Serializable {
 		this.country = country;
 	}
 
-	public String variableName() {
-		return NAME;
-	}
-
 	public boolean isCodeVerificationStatus() {
 		return codeVerificationStatus;
 	}
 
 	public void setCodeVerificationStatus(boolean codeVerificationStatus) {
 		this.codeVerificationStatus = codeVerificationStatus;
-	}
-
-	public void bindToExecution(@Nonnull DelegateExecution execution) {
-		execution.getVariables().forEach((name, value) -> {
-			if (!variableName().equals(name)) {
-				try {
-					Field field = getClass().getDeclaredField(name);
-					field.setAccessible(true);
-					field.set(this, value);
-					execution.removeVariable(name);
-				} catch (Exception e) {
-					UserRegistrationProcess.logger.debug("Can't bind property: {} on class: {} [{}/{}]", name,
-						getClass().getSimpleName(), e.getClass().getSimpleName(), e.getMessage());
-				}
-			}
-		});
 	}
 
 }

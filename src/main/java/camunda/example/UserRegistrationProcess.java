@@ -1,10 +1,5 @@
 package camunda.example;
 
-import io.micronaut.validation.validator.Validator;
-import org.camunda.bpm.engine.FormService;
-import org.camunda.bpm.engine.RepositoryService;
-import org.camunda.bpm.engine.RuntimeService;
-import org.camunda.bpm.engine.TaskService;
 import org.camunda.bpm.engine.delegate.DelegateExecution;
 import org.camunda.bpm.engine.form.FormData;
 import org.camunda.bpm.engine.runtime.ProcessInstance;
@@ -13,13 +8,10 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 import javax.annotation.Nonnull;
-import javax.inject.Inject;
 import javax.inject.Named;
 import javax.inject.Singleton;
-import javax.validation.ConstraintViolation;
-import javax.validation.ConstraintViolationException;
 import java.util.Map;
-import java.util.Set;
+import java.util.Optional;
 import java.util.UUID;
 
 /**
@@ -28,35 +20,42 @@ import java.util.UUID;
  * @author Lukasz Frankowski
  */
 @Singleton @Named(UserRegistrationProcess.BEAN_NAME)
-public class UserRegistrationProcess {
-
-	public static final String BEAN_NAME = "userRegistrationProcess";
+public class UserRegistrationProcess extends BaseProcessHandler<UserRegistration> {
 
 	public static final Logger logger = LoggerFactory.getLogger(UserRegistrationProcess.class);
+
+	public static final String BEAN_NAME = "userRegistrationProcess";
+	public static final String MODEL_NAME = "registration";
+
 	public static final String TEST_CODE = "1234";
 
-	@Inject protected RepositoryService repositoryService;
-	@Inject protected FormService formService;
-	@Inject protected TaskService taskService;
-	@Inject protected RuntimeService runtimeService;
-	@Inject protected Validator validator;
-	@Inject protected ProcessService processService;
+	@Override
+	protected String name() {
+		return BEAN_NAME;
+	}
 
-	// note that each swimlane in bpmn collaboration is created as a separate process, here go names of all processes in our collaboration
-	public static final String USER_REGISTRATION_PROCESS = "user-registration";
+	@Override
+	protected String modelName() {
+		return MODEL_NAME;
+	}
+
+	@Override
+	protected Optional<UserRegistration> newModel() {
+		return Optional.of(new UserRegistration());
+	}
 
 	/**
 	 * An example how to get the form data for the start task.
 	 */
 	public FormData getStartFormData() {
-		return formService.getStartFormData(processService.processDefinition(USER_REGISTRATION_PROCESS).getId());
+		return formService.getStartFormData(processDefinition().getId());
 	}
 
 	/**
 	 * An example how to get the form for the start task rendered in AngularJS.
 	 */
 	public String getStartFormHtml() {
-		return (String) formService.getRenderedStartForm(processService.processDefinition(USER_REGISTRATION_PROCESS).getId());
+		return (String) formService.getRenderedStartForm(processDefinition().getId());
 	}
 
 	/**
@@ -73,10 +72,7 @@ public class UserRegistrationProcess {
 		if (true) {
 
 			// this example shows how to start a process with custom business key, but without form data
-			instance = runtimeService.createProcessInstanceByKey(USER_REGISTRATION_PROCESS)
-				.setVariable(UserRegistration.NAME, new UserRegistration())
-				.businessKey(processBusinessKey)
-				.execute();
+			instance = start(processBusinessKey);
 
 			Task task = processService.findActiveTask(instance.getBusinessKey(), "user-send-phone");
 			formService.submitTaskForm(task.getId(), Map.of(
@@ -90,7 +86,7 @@ public class UserRegistrationProcess {
 			// NEVER USE THIS, because you cannot set own variables (even if you put setting variables after the line below, firstly
 			// the other states executors will be executed, and only THEN the variable will be set)
 			// it's better to use first task form instead of start form
-			instance = formService.submitStartForm(processService.processDefinition(USER_REGISTRATION_PROCESS).getId(),
+			instance = formService.submitStartForm(processDefinition().getId(),
 				processBusinessKey, Map.of(
 					"phone", phone,
 					"country", countryCode.toString()
@@ -99,14 +95,6 @@ public class UserRegistrationProcess {
 		}
 
 		return instance.getBusinessKey();
-	}
-
-	public void bind(@Nonnull DelegateExecution execution) {
-		UserRegistration model = findModel(execution);
-		model.bindToExecution(execution);
-		Set<ConstraintViolation<UserRegistration>> cv = validator.validate(model);
-		if (!cv.isEmpty())
-			throw new ConstraintViolationException(cv);
 	}
 
 	public void systemSendVerificationCode(@Nonnull DelegateExecution execution, @Nonnull UserRegistration model) {
@@ -123,10 +111,6 @@ public class UserRegistrationProcess {
 
 	public void systemVerifyCode(@Nonnull DelegateExecution execution, @Nonnull UserRegistration model) {
 		model.setCodeVerificationStatus(TEST_CODE.equals(model.getCode()));
-	}
-
-	protected UserRegistration findModel(@Nonnull DelegateExecution execution) {
-		return ((UserRegistration) execution.getVariable(UserRegistration.NAME));
 	}
 
 }

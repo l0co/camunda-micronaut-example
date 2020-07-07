@@ -33,8 +33,6 @@ public class ProcessConfigurationCustomizer implements Consumer<ProcessEngineCon
 		
 		list.add(new AbstractBpmnParseListener() {
 
-			// TODOLF to each activity add ${userRegistrationProcess.bind(execution)} on start and remove from the process def
-
 			/**
 			 * To each use activity we add on task create call to {@link ProcessService#tryAutoAssignTask(Task)} to try auto assign task.
 			 */
