@@ -1,5 +1,8 @@
 package camunda.example;
 
+import info.novatec.micronaut.camunda.bpm.feature.DefaultProcessEngineConfigurationCustomizer;
+import info.novatec.micronaut.camunda.bpm.feature.ProcessEngineConfigurationCustomizer;
+import io.micronaut.context.annotation.Replaces;
 import org.camunda.bpm.engine.ProcessEngineConfiguration;
 import org.camunda.bpm.engine.delegate.ExecutionListener;
 import org.camunda.bpm.engine.delegate.TaskListener;
@@ -13,29 +16,28 @@ import org.camunda.bpm.engine.impl.pvm.process.ActivityImpl;
 import org.camunda.bpm.engine.impl.pvm.process.ScopeImpl;
 import org.camunda.bpm.engine.impl.task.listener.ExpressionTaskListener;
 import org.camunda.bpm.engine.impl.util.xml.Element;
-import org.camunda.bpm.engine.impl.variable.VariableDeclaration;
 import org.camunda.bpm.engine.task.Task;
 
+import javax.annotation.Nonnull;
 import javax.inject.Inject;
 import javax.inject.Provider;
 import javax.inject.Singleton;
 import java.util.ArrayList;
 import java.util.Optional;
-import java.util.function.Consumer;
 
 /**
  * @author Lukasz Frankowski
  */
-@Singleton
-public class ProcessConfigurationCustomizer implements Consumer<ProcessEngineConfiguration> {
+@Singleton @Replaces(DefaultProcessEngineConfigurationCustomizer.class)
+public class ProcessConfigurationCustomizer implements ProcessEngineConfigurationCustomizer {
 
 	@Inject protected Provider<ProcessService> processServiceProvider;
 
 	@Override
-	public void accept(ProcessEngineConfiguration processEngineConfiguration) {
-		StandaloneProcessEngineConfiguration config = (StandaloneProcessEngineConfiguration) processEngineConfiguration;
+	public void customize(@Nonnull ProcessEngineConfiguration configuration) {
+		StandaloneProcessEngineConfiguration config = (StandaloneProcessEngineConfiguration) configuration;
 		ArrayList<BpmnParseListener> list = new ArrayList<>();
-		
+
 		list.add(new AbstractBpmnParseListener() {
 
 			protected String processKey = null;
@@ -54,12 +56,12 @@ public class ProcessConfigurationCustomizer implements Consumer<ProcessEngineCon
 
 						// enable lane auto assignment
 						if ("assignment".equals(property.attribute("name"))
-								&& "auto".equals(property.attribute("value")))
+							&& "auto".equals(property.attribute("value")))
 							enableAutoAssignment = true;
 
 						// enable auto bind
 						if ("bind".equals(property.attribute("name"))
-								&& "auto".equals(property.attribute("value")))
+							&& "auto".equals(property.attribute("value")))
 							enableAutoBind = true;
 
 					}));
